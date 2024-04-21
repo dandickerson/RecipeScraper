@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Recipe</title>
+</head>
+<body>
+    <h1>Add Recipe</h1>
+    <p>Please insert the URL for the recipe's print recipe page:</p>
+    <form method="post">
+        {% csrf_token %}
+        <input class="form-control" type="text" name="recipe_url" id="recipe_url" placeholder="Enter Site Address">
+        <br>
+        <label for="category">Select Recipe Category:</label>
+        <select name="category" id="category">
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
+</body>
+</html>

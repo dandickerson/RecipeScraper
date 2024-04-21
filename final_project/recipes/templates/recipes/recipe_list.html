@@ -1,0 +1,32 @@
+<!-- In your recipes app's templates/recipes/recipe_list.html file -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe List</title>
+</head>
+<body>
+    <h1>Recipe List</h1>
+    <ul>
+        {% for recipe in recipes %}
+            <li>
+                <h2>{{ recipe.title }}</h2>
+                <p><strong>Description:</strong> {{ recipe.description }}</p>
+                <p><strong>Category:</strong> {{ recipe.category }}</p>
+                <p><strong>Preparation Time:</strong> {{ recipe.prep_time }}</p>
+                <p><strong>Cook Time:</strong> {{ recipe.cook_time }}</p>
+                <p><strong>Servings:</strong> {{ recipe.servings }}</p>
+                <p><strong>Instructions:</strong> {{ recipe.instructions }}</p>
+                <p><strong>Ingredients:</strong></p>
+                <ul>
+                    {% for ingredient in recipe.recipeingredient_set.all %}
+                        <li>{{ ingredient.quantity }} {{ ingredient.unit }} {{ ingredient.ingredient.name }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
