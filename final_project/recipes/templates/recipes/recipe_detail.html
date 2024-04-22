@@ -1,6 +1,7 @@
 {% extends 'recipes/base.html' %}
 
 {% block body %}
+
     <h1>Recipe Detail</h1>
     <h2>{{ recipe.title }}</h2>
     <p><strong>Description:</strong> {{ recipe.description }}</p>
@@ -13,5 +14,7 @@
     </ul>
     <p><strong>Instructions:</strong></p>
     <p>{{ recipe.instructions }}</p>
-    <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-primary">Delete</a>
+    <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-primary">Delete Recipe</a>
+    <a href="{% url 'recipes:edit_recipe' pk=recipe.pk  %}" class="btn btn-primary">Edit Recipe</a>
+
 {% endblock %}
