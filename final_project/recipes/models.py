@@ -10,7 +10,6 @@ class RecipeCategory(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
 
 
 class Recipe(models.Model):
@@ -19,6 +18,8 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredient', blank=True)
     instructions = models.TextField(blank=True)
     category = models.ForeignKey(RecipeCategory, on_delete=models.CASCADE, blank=True)
+    recipe_image = models.CharField(max_length=500, default="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQam3maltN38Ks8qVSfYHsrzSaNOtjIFnX09mub8GeAmg&s")
+
 
 
 class RecipeIngredient(models.Model):

@@ -16,9 +16,9 @@ def register(request):
             username = form.cleaned_data.get('username')
             messages.success(request, f'Welcome {username}! You are logged in!')
             return redirect('login')
-        else:
-            form = RegistrationForm()
-        return render(request, 'users/register.html', {'form': form})
+    else:
+        form = RegistrationForm()
+    return render(request, 'users/register.html', {'form': form})
 
 
 @login_required

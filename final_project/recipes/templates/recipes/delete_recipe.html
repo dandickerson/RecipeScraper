@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Recipe</title>
-</head>
-<body>
+{% extends 'recipes/base.html' %}
+{% block body %}
     <h1>Delete Recipe</h1>
     <p>Are you sure you want to delete "{{ recipe.title }}"?</p>
     <form method="post">
         {% csrf_token %}
-        <button type="submit">Confirm Delete</button>
+        <button class="btn btn-danger" type="submit">Confirm Delete</button>
     </form>
-</body>
-</html>
+{% endblock %}

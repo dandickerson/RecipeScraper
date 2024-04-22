@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'djangobower',
     'schedule',
     'meal_planner',
     'users.apps.UsersConfig',
@@ -121,13 +122,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+# STATICFILES_FINDERS = 'djangobower.finders.BowerFinder',
+# BOWER_COMPONENTS_ROOT = '/CS3620_Final_Project/components/'
+# BOWER_INSTALLED_APPS = (
+#     'jquery',
+#     'jquery-ui',
+#     'bootstrap'
+# )
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = 'recipes:recipes'
+LOGIN_REDIRECT_URL = 'recipes:recipe_list'
 LOGIN_URL = 'login'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'pictures')
 MEDIA_URL = '/pictures/'

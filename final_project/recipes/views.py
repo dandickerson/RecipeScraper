@@ -4,30 +4,20 @@ import requests
 from .models import Recipe, Ingredient, RecipeIngredient, RecipeCategory
 from .forms import RecipeForm
 from django.http import HttpResponseRedirect
-
-# Create your views here.
-
-
-def recipe_list(request):
-    recipes = Recipe.objects.all()
-    return render(request, 'recipes/recipe_list.html', {'recipes': recipes})
+from django.template import loader
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 
 
-def recipe_detail(request, pk):
-    recipe = Recipe.objects.get(pk=pk)
-    return render(request, 'recipes/recipe_detail.html', {'recipe': recipe})
+class RecipeList(ListView):
+    model = Recipe
+    template_name = 'recipes/recipe_list.html'
+    context_object_name = 'recipe_list'
 
 
-# def add_recipe(request):
-#     if request.method == 'POST':
-#         form = RecipeForm(request.POST)
-#         if form.is_valid():
-#             recipe = form.scrape()
-#             if recipe:
-#                 return redirect('recipe_list')
-#     else:
-#         form = RecipeForm()
-#     return render(request, 'recipes/add_recipe.html', {'form': form})
+class RecipeDetail(DetailView):
+    model = Recipe
+    template_name = 'recipes/recipe_detail.html'
 
 
 def add_recipe(request):
@@ -39,6 +29,10 @@ def add_recipe(request):
         soup = BeautifulSoup(page.text, 'html.parser')
         title = soup.find('h2', {'class': 'tasty-recipes-title'}).text.strip()
         description = soup.find('div', {'class': 'tasty-recipes-description'})
+        image = soup.find('img')
+        if image:
+            src_value = image['src']
+            recipe_image = src_value
         if description:
             description = description.text.strip()
         ingredients_list = []
@@ -50,21 +44,19 @@ def add_recipe(request):
                 list_items = ul_element.find_all('li')
 
                 for li in list_items:
-                    ingredient_name = li.get_text() 
+                    ingredient_name = li.get_text()
                     unit = li.get('data-unit')
                     quantity = li.get('data-amount')
-                    # Check if quantity exists before assigning it
                     if quantity:
                         ingredients_list.append((ingredient_name, unit, quantity))
                     else:
-                        # Handle the case where quantity is not available
                         print(f"No quantity found for ingredient: {ingredient_name}")
             else:
                 print('No unordered list found in div')
         else:
             print('Div with class="tasty-recipes-ingredients" not found')
 
-        new_recipe = Recipe.objects.create(title=title, description=description, category=category)
+        new_recipe = Recipe.objects.create(title=title, description=description, category=category, recipe_image=recipe_image)
 
         for ingredient_data in ingredients_list:
             ingredient_name, unit, quantity = ingredient_data  # Unpack tuple
@@ -72,7 +64,7 @@ def add_recipe(request):
             RecipeIngredient.objects.create(
                 recipe=new_recipe,
                 ingredient=ingredient,
-                quantity=quantity,  # Assign the quantity only if it exists
+                quantity=quantity,
                 unit=unit,
             )
 
@@ -80,14 +72,15 @@ def add_recipe(request):
 
     else:
         categories = RecipeCategory.objects.all()
-        context = {'categories': categories}
-        return render(request, 'recipes/add_recipe.html', context)
-
+        return render(request, 'recipes/add_recipe.html', {'categories': categories})
 
 
 def delete_recipe(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     if request.method == 'POST':
         recipe.delete()
-        return redirect('recipe_list')  # Redirect to recipe list page after deleting recipe
+        return redirect('recipes:recipe_list')
     return render(request, 'recipes/delete_recipe.html', {'recipe': recipe})
+
+
+

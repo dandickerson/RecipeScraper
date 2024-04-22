@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recipe Detail</title>
-</head>
-<body>
+{% extends 'recipes/base.html' %}
+
+{% block body %}
     <h1>Recipe Detail</h1>
     <h2>{{ recipe.title }}</h2>
     <p><strong>Description:</strong> {{ recipe.description }}</p>
-    <p><strong>Category:</strong> {{ recipe.category }}</p>
+    <p><strong>Category:</strong> {{ recipe.category.name }}</p>
     <h3>Ingredients:</h3>
     <ul>
         {% for recipe_ingredient in recipe.recipeingredient_set.all %}
@@ -18,5 +13,5 @@
     </ul>
     <p><strong>Instructions:</strong></p>
     <p>{{ recipe.instructions }}</p>
-</body>
-</html>
+    <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-primary">Delete</a>
+{% endblock %}
