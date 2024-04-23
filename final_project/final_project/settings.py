@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'djangobower',
+    # 'djangobower',
     'schedule',
     'meal_planner',
     'users.apps.UsersConfig',

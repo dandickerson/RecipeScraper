@@ -6,14 +6,18 @@
     <h2>{{ recipe.title }}</h2>
     <p><strong>Description:</strong> {{ recipe.description }}</p>
     <p><strong>Category:</strong> {{ recipe.category.name }}</p>
-    <h3>Ingredients:</h3>
+    <p><strong>Ingredients:</strong></p>
     <ul>
-        {% for recipe_ingredient in recipe.recipeingredient_set.all %}
-            <li>{{ recipe_ingredient.ingredient.name }} - {{ recipe_ingredient.quantity }} {{ recipe_ingredient.unit }}</li>
+        {% for recipe_ingredient in recipe_ingredients %}
+            <li>{{ recipe_ingredient.ingredient.name }}</li>
         {% endfor %}
     </ul>
     <p><strong>Instructions:</strong></p>
-    <p>{{ recipe.instructions }}</p>
+    <ol>
+        {% for recipe_instruction in recipe_instructions %}
+            <li>{{ recipe_instruction.instruction.instruction }}</li>
+        {% endfor %}
+    </ol>
     <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-primary">Delete Recipe</a>
     <a href="{% url 'recipes:edit_recipe' pk=recipe.pk  %}" class="btn btn-primary">Edit Recipe</a>
 
