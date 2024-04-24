@@ -21,7 +21,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredient', blank=True)
     instructions = models.ManyToManyField(Instruction, through='RecipeInstruction', blank=True)
     category = models.ForeignKey(RecipeCategory, on_delete=models.CASCADE, blank=True)
-    recipe_image = models.CharField(max_length=500, default="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQam3maltN38Ks8qVSfYHsrzSaNOtjIFnX09mub8GeAmg&s")
+    recipe_image = models.CharField(max_length=500, default='https://t4.ftcdn.net/jpg/02/15/28/55/360_F_215285525_fqG9SPnXZfOrwFxHzqI6d1hHPVmdSUSx.jpg')
 
 
 class RecipeIngredient(models.Model):

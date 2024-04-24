@@ -2,18 +2,35 @@ from django.shortcuts import render, redirect, get_object_or_404
 from bs4 import BeautifulSoup
 import requests
 from .models import *
-from .forms import RecipeForm
+from .forms import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import loader
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.views.generic import UpdateView
+from django.urls import reverse_lazy
 import re
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+from django.forms import inlineformset_factory
 
 
 class RecipeList(ListView):
     model = Recipe
     template_name = 'recipes/recipe_list.html'
     context_object_name = 'recipe_list'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = RecipeCategory.objects.all()
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_id = self.request.GET.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset
 
 
 class RecipeDetail(DetailView):
@@ -33,47 +50,58 @@ class RecipeDetail(DetailView):
 
 def add_recipe(request):
     if request.method == 'POST':
+        validator = URLValidator()
         recipe_url = request.POST.get('recipe_url')
+        if not recipe_url.startswith(('http://', 'https://')):
+            recipe_url = 'http://' + recipe_url
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        try:
+            response = requests.get(recipe_url, headers=headers)
+            response.raise_for_status()
+            page = response.content
+            soup = BeautifulSoup(page, 'html.parser')
+        except requests.RequestException:
+            error_message = "URL is not reachable. Please enter a valid URL."
+            return render(request, 'recipes/error.html', {'error_message': error_message})
+
+        try:
+            validator(recipe_url)
+        except ValidationError:
+            error_message = "Invalid URL. Please enter a valid URL."
+            render(request, 'recipes/error.html', {'error_message': error_message})
+
         category_id = request.POST.get('category')
         category = RecipeCategory.objects.get(pk=category_id)
         print(category)
 
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
         # Extract Recipe object fields
-        response = requests.get(recipe_url, headers=headers)
-        response.raise_for_status()
-        page = response.content
-        soup = BeautifulSoup(page, 'html.parser')
-        title_element = soup.find('h2') # , {'class': 'tasty-recipes-title'})
-        if title_element:
-            title = title_element.text.strip()
+
+        main = soup.find('main')
+        header = main.find('div', class_=re.compile('.*header.*'))
+        head = header.find('h2')
+        if head:
+            title = head.text.strip()
+            print(title)
         else:
             title = "Untitled Recipe"
-        print(title)
-        description = soup.find('div', {'class': 'tasty-recipes-description'})
-        image = soup.find('img')
-        if image:
-            recipe_image = image['src']
-        else:
-            recipe_image = Recipe.Meta.get_field('recipe_image').get_default()
+            print(title)
+
+        image = main.find('img')
+        recipe_image = image['src']
 
         # Extract ingredients
         ingredients_list = []
-        ingredients_div = soup.find('div', {'class': 'tasty-recipes-ingredients'})
+        ingredients_div = soup.find('div', class_=re.compile('.*ingredient.*'))
         if ingredients_div:
-            ul_element = ingredients_div.find('ul')
-            if ul_element:
-                list_items = ul_element.find_all('li')
-            else:
-                print('no unordered list found')
+            list_items = ingredients_div.find_all('li')
         else:
-            print('no div found')
+            return render(request, 'recipes/error.html')
 
         for li in list_items:
             ingredient_name = li.get_text().strip()
-            #check db for existing ingredient
+            # check db for existing ingredient
             existing_ingredient = Ingredient.objects.filter(name=ingredient_name).first()
             if existing_ingredient:
                 ingredient = existing_ingredient
@@ -81,25 +109,24 @@ def add_recipe(request):
                 ingredient = Ingredient.objects.create(name=ingredient_name)
             print(ingredient)
 
-            ingredients_list.append((ingredient))
+            ingredients_list.append(ingredient)
 
         # Extract Instructions
         instructions_list = []
-        instructions_div = soup.find('div', {'class': 'tasty-recipes-instructions'})
-
-        ol_element = instructions_div.find('ol')
-        ordered_list_items = ol_element.find_all('li')
-
-        for li in ordered_list_items:
-            instruction = li.get_text().strip()
-            instruction_object = Instruction.objects.create(instruction=instruction)
+        instructions_div = soup.find('div', class_=re.compile('.*instruction.*'))
+        if not instructions_div:
+            error_message = f"Cannot import recipe"
+            return render(request, 'recipes/error.html', {'error_message': error_message})
+        instruction_items = instructions_div.find_all('li')
+        for item in instruction_items:
+            instruction_text = item.get_text().strip()
+            instruction = Instruction.objects.create(instruction=instruction_text)
             print(instruction)
-            instructions_list.append(instruction_object)
+            instructions_list.append(instruction)
 
         # Create the Recipe object
         new_recipe = Recipe.objects.create(
             title=title,
-            description=description.text.strip() if description else '',
             category=category,
             recipe_image=recipe_image
         )
@@ -143,14 +170,20 @@ def delete_recipe(request, pk):
     return render(request, 'recipes/delete_recipe.html', {'recipe': recipe})
 
 
-def edit_recipe(request, pk):
-    recipe = get_object_or_404(Recipe, pk=pk)
-    categories = RecipeCategory.objects.all()
+class RecipeUpdateView(UpdateView):
+    model = Recipe
+    form_class = RecipeForm
+    template_name = 'recipes/edit_recipe.html'
 
-    form = RecipeForm(request.POST or None, instance=recipe)
+    def get_success_url(self):
+        return reverse_lazy('recipes:detail', kwargs={'pk': self.object.pk})
 
-    if form.is_valid():
-        form.save()
-        return redirect('recipes:recipe_detail', pk=recipe.pk)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = RecipeCategory.objects.all()
+        return context
 
-    return render(request, 'recipes/edit_recipe.html', {'form': form, 'categories': categories})
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+        instance.save()
+        return super().form_valid(form)
