@@ -16,6 +16,7 @@ from .mixins import RedirectToLoginMixin
 from django.db.models import Q
 from django.urls import reverse
 from random import choice
+from django.contrib import messages
 
 
 class RecipeList(RedirectToLoginMixin, ListView):
@@ -213,6 +214,13 @@ class RecipeUpdateView(UpdateView):
 
 
 def random_recipe(request):
-    all_recipes = Recipe.objects.all()
-    random_recipe = choice(all_recipes)
-    return redirect(reverse('recipes:detail', kwargs={'pk': random_recipe.pk}))
+    if request.user.is_authenticated:
+        user_recipes = Recipe.objects.filter(user=request.user)
+        if user_recipes.exists():
+            random_recipe = choice(user_recipes)
+            return redirect('recipes:detail', pk=random_recipe.pk)
+        else:
+            messages.success(request, f'You have no current recipes')
+            return redirect('recipes:recipe_list')
+    else:
+        return redirect('login')
