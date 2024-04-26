@@ -53,24 +53,25 @@
     {% if is_paginated %}
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
+            <!-- Include existing query parameters in pagination links -->
             <li class="page-item">
-                <a class="page-link btn btn-primary" href="?page=1">&laquo;</a>
+                <a class="page-link" href="?page=1{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&laquo;</a>
             </li>
             <li class="page-item">
-                <a class="page-link btn btn-primary" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&lsaquo;</a>
             </li>
         {% endif %}
         {% for num in page_obj.paginator.page_range %}
             <li class="page-item {% if num == page_obj.number %}active{% endif %}">
-                <a class="page-link btn btn-primary" href="?page={{ num }}">{{ num }}</a>
+                <a class="page-link" href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ num }}</a>
             </li>
         {% endfor %}
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link btn btn-primary" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&rsaquo;</a>
             </li>
             <li class="page-item">
-                <a class="page-link btn btn-primary" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&raquo;</a>
             </li>
         {% endif %}
     </ul>
