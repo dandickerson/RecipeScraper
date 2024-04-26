@@ -16,8 +16,6 @@ from .mixins import RedirectToLoginMixin
 from django.db.models import Q
 from django.urls import reverse
 from random import choice
-from django.conf import settings
-import os
 
 
 class RecipeList(RedirectToLoginMixin, ListView):
@@ -59,7 +57,6 @@ class RecipeDetail(DetailView):
 
 
 def add_recipe(request):
-    title = 'Untitled Recipe'
     if request.method == 'POST':
         validator = URLValidator()
         recipe_url = request.POST.get('recipe_url')
@@ -76,7 +73,6 @@ def add_recipe(request):
         except requests.RequestException:
             error_message = "URL is not reachable. Please enter a valid URL."
             return render(request, 'recipes/error.html', {'error_message': error_message})
-
         try:
             validator(recipe_url)
         except ValidationError:
@@ -91,21 +87,29 @@ def add_recipe(request):
         main = soup.find('main')
         if not main:
             main = soup.find('body')
-        header = main.find_all('div', class_=re.compile('.*header.*'))
-        for tag in header:
-            if 'recipe' in tag.name:
-                head = tag.find(['h1', 'h2'])
+        # title_tag = main.find(['h1', 'h2'])
+        # title = title_tag.text.strip()  # if title_tag else "Untitled"
+        header_divs = main.find_all('div', class_=re.compile('.*header.*'))
+        print(header_divs)
+        title = None
+        for div in header_divs:
+            head = div.find(['h1', 'h2'])
+            if head:
+                title = head.text.strip()
+                break
+            elif div.name in ['div', 'article']:
+                print(div)
+                head = div.find(['h1', 'h2'])
                 if head:
                     title = head.text.strip()
                     break
-            elif tag.name in ['div', 'article']:
-                head = tag.find(['h1', 'h2'])
-                if head:
-                    title = head.text.strip()
-                    break
+        if title is None:
+            header_div = main.find('header')
+            title_tag = header_div.find(['h1', 'h2'])
+            if title_tag:
+                title = title_tag.text.strip()
             else:
                 title = "Untitled Recipe"
-                break
 
         image = main.find('img')
         recipe_image = image['src']
