@@ -12,13 +12,19 @@ from django.urls import reverse_lazy
 import re
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-from django.forms import inlineformset_factory
+from .mixins import RedirectToLoginMixin
+from django.db.models import Q
+from django.urls import reverse
+from random import choice
+from django.conf import settings
+import os
 
 
-class RecipeList(ListView):
+class RecipeList(RedirectToLoginMixin, ListView):
     model = Recipe
     template_name = 'recipes/recipe_list.html'
     context_object_name = 'recipe_list'
+    paginate_by = 6
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -26,7 +32,11 @@ class RecipeList(ListView):
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = Recipe.objects.filter(user=self.request.user)
+        ingredient_query = self.request.GET.get('ingredient')
+        if ingredient_query:
+            queryset = queryset.filter(ingredients__name__icontains=ingredient_query)
+            return queryset.distinct()
         category_id = self.request.GET.get('category')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
@@ -49,6 +59,7 @@ class RecipeDetail(DetailView):
 
 
 def add_recipe(request):
+    title = 'Untitled Recipe'
     if request.method == 'POST':
         validator = URLValidator()
         recipe_url = request.POST.get('recipe_url')
@@ -77,16 +88,24 @@ def add_recipe(request):
         print(category)
 
         # Extract Recipe object fields
-
         main = soup.find('main')
-        header = main.find('div', class_=re.compile('.*header.*'))
-        head = header.find('h2')
-        if head:
-            title = head.text.strip()
-            print(title)
-        else:
-            title = "Untitled Recipe"
-            print(title)
+        if not main:
+            main = soup.find('body')
+        header = main.find_all('div', class_=re.compile('.*header.*'))
+        for tag in header:
+            if 'recipe' in tag.name:
+                head = tag.find(['h1', 'h2'])
+                if head:
+                    title = head.text.strip()
+                    break
+            elif tag.name in ['div', 'article']:
+                head = tag.find(['h1', 'h2'])
+                if head:
+                    title = head.text.strip()
+                    break
+            else:
+                title = "Untitled Recipe"
+                break
 
         image = main.find('img')
         recipe_image = image['src']
@@ -97,11 +116,11 @@ def add_recipe(request):
         if ingredients_div:
             list_items = ingredients_div.find_all('li')
         else:
-            return render(request, 'recipes/error.html')
+            error_message = f"Cannot import ingredients"
+            return render(request, 'recipes/error.html', {'error_message': error_message})
 
         for li in list_items:
             ingredient_name = li.get_text().strip()
-            # check db for existing ingredient
             existing_ingredient = Ingredient.objects.filter(name=ingredient_name).first()
             if existing_ingredient:
                 ingredient = existing_ingredient
@@ -115,7 +134,7 @@ def add_recipe(request):
         instructions_list = []
         instructions_div = soup.find('div', class_=re.compile('.*instruction.*'))
         if not instructions_div:
-            error_message = f"Cannot import recipe"
+            error_message = f"Cannot import instructions"
             return render(request, 'recipes/error.html', {'error_message': error_message})
         instruction_items = instructions_div.find_all('li')
         for item in instruction_items:
@@ -187,3 +206,9 @@ class RecipeUpdateView(UpdateView):
         instance = form.save(commit=False)
         instance.save()
         return super().form_valid(form)
+
+
+def random_recipe(request):
+    all_recipes = Recipe.objects.all()
+    random_recipe = choice(all_recipes)
+    return redirect(reverse('recipes:detail', kwargs={'pk': random_recipe.pk}))

@@ -1,6 +1,21 @@
 {% extends 'recipes/base.html' %}
+
 {% block body %}
-    <h1>Error</h1>
-    <p>{{ error_message }}</p>
-    <a href="{{ return_url }}">Return to main recipe page</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title text-center">Error</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ error_message }}</p>
+                    <div class="text-center">
+                        <a href="{{ return_url }}" class="btn btn-primary">Return to main recipe page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

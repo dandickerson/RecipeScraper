@@ -1,18 +1,47 @@
 {% extends 'recipes/base.html' %}
-{% block body %}
 
-    <h1>Add Recipe</h1>
-    <p>Please insert the URL for the recipe's print recipe page:</p>
-    <form method="post">
-        {% csrf_token %}
-        <input class="form-control" type="text" name="recipe_url" id="recipe_url" placeholder="Enter Site Address">
-        <br>
-        <label for="category">Select Recipe Category:</label>
-        <select name="category" id="category">
-            {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
-            {% endfor %}
-        </select>
-        <button class="btn btn-primary" type="submit">Submit</button>
-    </form>
+{% block style %}
+    <style>
+        /* Add your custom styles here */
+        .container {
+            margin-top: 20px;
+        }
+        #recipe_url {
+            margin-bottom: 10px;
+        }
+        label {
+            margin-right: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title text-center mb-4 text-primary">Add Recipe</h1>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <input class="form-control" type="text" name="recipe_url" id="recipe_url" placeholder="Enter Site Address">
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Select Recipe Category:</label>
+                                <select class="form-control" name="category" id="category">
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <button class="btn btn-primary mt-2" type="submit">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

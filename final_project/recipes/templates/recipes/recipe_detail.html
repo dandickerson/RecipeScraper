@@ -2,22 +2,50 @@
 
 {% block body %}
 
-    <h1>Recipe Detail</h1>
-    <h2>{{ recipe.title }}</h2>
-    <p><strong>Category:</strong> {{ recipe.category.name }}</p>
-    <p><strong>Ingredients:</strong></p>
-    <ul>
-        {% for recipe_ingredient in recipe_ingredients %}
-            <li>{{ recipe_ingredient.ingredient.name }}</li>
-        {% endfor %}
-    </ul>
-    <p><strong>Instructions:</strong></p>
-    <ol>
-        {% for recipe_instruction in recipe_instructions %}
-            <li>{{ recipe_instruction.instruction.instruction }}</li>
-        {% endfor %}
-    </ol>
-    <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-primary">Delete Recipe</a>
-    <a href="{% url 'recipes:edit_recipe' pk=recipe.pk  %}" class="btn btn-primary">Edit Recipe</a>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center">{{ recipe.title }}</h1>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4 h-100 d-flex flex-column">
+                <div class="card-body">
+                    <h2>Ingredients</h2>
+                    <ul>
+                        {% for recipe_ingredient in recipe_ingredients %}
+                            <li>{{ recipe_ingredient.ingredient.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4 h-100 d-flex flex-column">
+                <div class="card-body">
+                    <h2>Instructions</h2>
+                    <ol>
+                        {% for recipe_instruction in recipe_instructions %}
+                            <li>{{ recipe_instruction.instruction.instruction }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="text-center mb-5">
+            <a href="{% url 'recipes:delete_recipe' pk=recipe.pk  %}" class="btn btn-danger btn-block">Delete Recipe</a>
+            <a href="{% url 'recipes:edit_recipe' pk=recipe.pk  %}" class="btn btn-primary btn-block">Edit Recipe</a>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
