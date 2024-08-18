@@ -31,5 +31,5 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    # ... the rest of your URLconf goes here ...
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
